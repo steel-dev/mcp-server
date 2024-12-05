@@ -15,7 +15,6 @@ import {
 import puppeteer, { Browser, Page } from "puppeteer";
 import { Steel } from "steel-sdk";
 import dotenv from "dotenv";
-import path from "path";
 import { encoding_for_model } from "tiktoken";
 
 dotenv.config();
@@ -173,7 +172,7 @@ const consoleLogs: string[] = [];
 const screenshots = new Map<string, string>();
 const steel = new Steel({
   steelAPIKey: steelKey,
-  baseURL: "http://localhost:3000",
+  ...(steelLocal ? { baseURL: "http://localhost:3000" } : {}),
 });
 let sessionId: string | undefined;
 
@@ -182,30 +181,50 @@ async function ensureBrowser(): Promise<Page> {
     if (browser) {
       await browser.close().catch(console.error);
     }
-    const session = await steel.sessions.create({ timeout: 900000 });
-    sessionId = session.id;
-    console.error(
-      JSON.stringify({
-        message: "New session created with 15 minute timeout",
-        sessionId,
-      })
-    );
+    try {
+      const session = await steel.sessions.create({ timeout: 900000 });
+      sessionId = session.id;
+      console.error(
+        JSON.stringify({
+          message: "New session created with 15 minute timeout",
+          sessionId,
+        })
+      );
 
-    let browserWSEndpoint: string;
-    if (steelLocal) {
-      browserWSEndpoint = `ws://localhost:3000/`;
-      console.error(JSON.stringify({ message: "Using local Steel instance" }));
-    } else {
-      browserWSEndpoint = `wss://connect.steel.dev?apiKey=${steelKey}&sessionId=${sessionId}`;
-      console.error(JSON.stringify({ message: "Using remote Steel instance" }));
+      let browserWSEndpoint: string;
+      if (steelLocal) {
+        browserWSEndpoint = `ws://localhost:3000/`;
+        console.error(JSON.stringify({ message: "Using local Steel instance" }));
+      } else {
+        browserWSEndpoint = `wss://connect.steel.dev?apiKey=${steelKey}&sessionId=${sessionId}`;
+        console.error(JSON.stringify({ message: "Using remote Steel instance" }));
+      }
+
+      try {
+        browser = await puppeteer.connect({ browserWSEndpoint });
+        console.error(JSON.stringify({ message: "Successfully connected to browser" }));
+      } catch (error) {
+        console.error(JSON.stringify({
+          message: "Failed to connect to browser",
+          error: (error as Error).message,
+          stack: (error as Error).stack
+        }));
+        throw error;
+      }
+
+      const pages = await browser.pages();
+      page = pages[0];
+      await page.setViewport({ width: 1280, height: 720 });
+      setupPageListeners(page);
+      return page;
+    } catch (error) {
+      console.error(JSON.stringify({
+        message: "Failed to create session",
+        error: (error as Error).message,
+        stack: (error as Error).stack
+      }));
+      throw error;
     }
-
-    browser = await puppeteer.connect({ browserWSEndpoint });
-    const pages = await browser.pages();
-    page = pages[0];
-    await page.setViewport({ width: 1280, height: 720 });
-    setupPageListeners(page);
-    return page;
   }
 
   try {
@@ -213,6 +232,7 @@ async function ensureBrowser(): Promise<Page> {
       // If we have a sessionId, try to use the existing session
       try {
         const session = await steel.sessions.retrieve(sessionId);
+        console.error(JSON.stringify({ message: "Retrieved existing session", status: session.status }));
         if (session.status === "live") {
           // Session is still valid, ensure we have a browser and page
           if (!browser || !page) {
@@ -240,6 +260,7 @@ async function ensureBrowser(): Promise<Page> {
           console.error(
             JSON.stringify({
               message: "Existing session is not live. Creating a new one.",
+              status: session.status
             })
           );
           return createNewSession();
@@ -249,6 +270,7 @@ async function ensureBrowser(): Promise<Page> {
           JSON.stringify({
             message: "Error retrieving session",
             error: (error as Error).message,
+            stack: (error as Error).stack
           })
         );
         return createNewSession();
@@ -265,6 +287,7 @@ async function ensureBrowser(): Promise<Page> {
       JSON.stringify({
         message: "Error in ensureBrowser",
         error: (error as Error).message,
+        stack: (error as Error).stack
       })
     );
     return createNewSession();
@@ -617,16 +640,12 @@ async function handleToolCall(
 
           let content;
           if (args.selector) {
-            // If selector is provided, get content from specific elements
             content = await page.evaluate((selector) => {
               const elements = document.querySelectorAll(selector);
-              return Array.from(elements).map((el) => el.outerHTML);
+              return Array.from(elements).map((el) => el.outerHTML).join(" ");
             }, args.selector);
           } else {
-            // If no selector is provided, get content from the whole page
-            content = await page.evaluate(() => {
-              return document.documentElement.outerHTML;
-            });
+            content = await page.evaluate(() => document.documentElement.outerHTML);
           }
 
           // Sanitize the content while preserving important structure
@@ -638,28 +657,30 @@ async function handleToolCall(
               .trim(); // Remove leading and trailing whitespace
           };
 
-          // Apply sanitization to the content
-          const sanitizedContent = Array.isArray(content)
-            ? content.map(sanitizeContent)
-            : sanitizeContent(content);
-
-          // Join the sanitized content items if it's an array
-          const contentString = Array.isArray(sanitizedContent)
-            ? sanitizedContent.join(" ")
-            : sanitizedContent;
+          const sanitizedContent = sanitizeContent(content);
 
           // Tokenize the content
-          const tokens = enc.encode(contentString);
+          const tokens = enc.encode(sanitizedContent);
 
           // Truncate the tokens if they exceed the max limit
-          let truncatedContent = contentString;
+          let truncatedContent;
           if (tokens.length > maxTokens) {
             const truncatedTokens = tokens.slice(0, maxTokens);
             truncatedContent = enc.decode(truncatedTokens) + "... (truncated)";
+          } else {
+            truncatedContent = sanitizedContent;
           }
 
           // Free the encoder to prevent memory leaks
           enc.free();
+
+          console.error(JSON.stringify({
+            message: "Content extracted and truncated",
+            originalLength: content.length,
+            sanitizedLength: sanitizedContent.length,
+            tokenCount: tokens.length,
+            truncatedLength: truncatedContent.length
+          }));
 
           return {
             content: [
@@ -671,6 +692,11 @@ async function handleToolCall(
             isError: false,
           };
         } catch (error) {
+          console.error(JSON.stringify({
+            message: "Failed to extract content",
+            error: (error as Error).message,
+            stack: (error as Error).stack
+          }));
           return {
             content: [
               {
