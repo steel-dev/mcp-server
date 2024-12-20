@@ -1,46 +1,40 @@
-# Steel Voyager
+# Steel MCP Server
 
 ![Steel Voyager Demo](assets/mcp-figma-application-demo.mp4)
-"
-A powerful Model Context Protocol (MCP) server that enables LLMs like Claude to automate web browsers through Puppeteer and Steel. It provides capabilities for browser automation, taking screenshots, and executing JavaScript in a real browser environment.
-Ask Claude to help you with tasks like:
 
-- "Navigate to a website and fill out a complex form"
-- "Log into my account and check my order status"
-- "Research products across multiple e-commerce sites"
-- "Automate repetitive web tasks like data entry or form submissions"
+A Model Context Protocol (MCP) server that enables LLMs like Claude to navigate the web through Puppeteer-based tools and Steel. Based on the Web Voyager framework, it provides tools for all the standard web actions click clicking/scrolling/typing/etc and taking screenshots.
+
+Ask Claude to help you with tasks like:
+- "Search for a recipe and save the ingredients list"
+- "Track a package delivery status"
+- "Find and compare prices for a specific product"
+- "Fill out an online job application"
 
 ## 🚀 Quick Start
 
-Below are the basic steps for getting started with Steel Voyager. This includes how to set up for both cloud and local/self-hosted modes, as well as how to configure Claude Desktop.
+Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You only need to adjust the environment options to switch between Steel Cloud and a local/self-hosted instance.
 
-### 1. Clone and Install
+### Prerequisites
 
-```bash
-git clone https://github.com/steel-voyager/steel-voyager.git
-cd steel-voyager
-npm install
-npm run build
-```
+1. Latest versions of Git and Node.js installed
+2. [Claude Desktop](https://github.com/<somewhere>) installed
+3. (Optional) [Steel Docker image](https://github.com/example/steel-docker#readme) running locally, if you plan to self-host
+4. (Optional) If running Steel Cloud, bring your API key. Get one [here](https://app.steel.dev/settings/api-keys).
 
-### 2. Choose Your Deployment Mode
+---
 
-Steel Voyager supports two main modes: **Cloud** and **Local/Self-Hosted**.
+### A) Quick Start (Steel Cloud)
 
-#### A) Cloud Mode
+1. Clone and build the project:
 
-1. Obtain your Steel API key.
-2. Configure the following environment variables:
-   ```
-   STEEL_LOCAL=false
-   STEEL_API_KEY=YOUR_STEEL_API_KEY_HERE
-   STEEL_BASE_URL=https://api.steel.dev  # or your custom endpoint if self-hosted
-   ```
-3. Start the server:
    ```bash
-   npm start
+   git clone https://github.com/steel-voyager/steel-voyager.git
+   cd steel-voyager
+   npm install
+   npm run build
    ```
-4. (Optional) If you use Claude Desktop, update your claude_desktop_config.json to point to your built server and make sure to include the environment variables. For example:
+
+2. Configure Claude Desktop (claude_desktop_config.json) by adding a server entry:
 
    ```json
    {
@@ -58,22 +52,29 @@ Steel Voyager supports two main modes: **Cloud** and **Local/Self-Hosted**.
    }
    ```
 
-5. Launch Claude Desktop, and it will start Steel Voyager in cloud mode using the provided configuration.
+   - Replace "YOUR_STEEL_API_KEY_HERE" with your valid Steel API key.
+   - Make sure "STEEL_LOCAL" is set to "false" for cloud mode.
 
-#### B) Local / Self-Hosted Mode
+3. Start Claude Desktop. It will automatically launch this MCP server in Cloud mode.
 
-1. Make sure you have the open-source Steel Docker image running locally (or on your custom server).  
-   ↪ You can learn more about the open-source [Steel Docker image here](https://github.com/example/steel-docker#readme).
-2. Set the following environment variables:
-   ```
-   STEEL_LOCAL=true
-   STEEL_BASE_URL=http://localhost:3000  # or your custom domain/host if overriding
-   ```
-3. Start the server:
+4. (Optional) You can view or manage active Steel Browser sessions in your [dashboard](https://app.steel.dev).
+
+---
+
+### B) Quick Start (Local / Self-Hosted Steel)
+
+1. Ensure your local or self-hosted Steel service is running (e.g., using the open-source Steel Docker image).
+
+2. Clone and build the project (same as above if not done yet):
+
    ```bash
-   npm start
+   git clone https://github.com/steel-voyager/steel-voyager.git
+   cd steel-voyager
+   npm install
+   npm run build
    ```
-4. (Optional) Configure Claude Desktop in a similar way as cloud mode, but with the local environment variables:
+
+3. Configure Claude Desktop (claude_desktop_config.json) for local mode:
 
    ```json
    {
@@ -91,7 +92,16 @@ Steel Voyager supports two main modes: **Cloud** and **Local/Self-Hosted**.
    }
    ```
 
-5. Launch Claude Desktop, which will automatically start Steel Voyager and connect to your locally running Steel service.
+   - "STEEL_LOCAL" must be "true".
+   - If self hosting on a cloud server, configure "STEEL_BASE_URL" to point to your local/self-hosted Steel URL.
+
+4. Start Claude Desktop, which will connect to your locally running Steel and launch Steel Voyager in local mode.
+
+5. (Optional) To view sessions locally, you can visit your self-hosted dashboard ([localhost:5173](http://localhost:5173/)) or logs specific to your Steel runtime environment.
+
+---
+
+That’s it! Once Claude Desktop starts, it will orchestrate the MCP server behind the scenes and let you interact with the web automation capabilities through Steel Voyager.
 
 ## Components
 
@@ -166,11 +176,8 @@ Steel Voyager supports two main modes: **Cloud** and **Local/Self-Hosted**.
 - Browser automation with Puppeteer
 - Steel integration for browser session management
 - Visual element identification through numbered labels
-- Console log monitoring and capture
 - Screenshot capabilities
-- JavaScript execution
 - Basic web interaction (navigation, clicking, form filling)
-- Content extraction with token limit handling
 - Lazy-loading support through scrolling
 - Local and remote Steel instance support
 
@@ -183,7 +190,6 @@ When interacting with pages, Steel Puppeteer adds visual overlays to help identi
 - Labels appear above or inside elements for easy reference
 - Use these numbers when specifying elements for click or type operations
 
-Below is a revised “Configuration” section for your README, aiming for greater clarity and simplicity.
 
 ## Configuration
 
@@ -201,7 +207,7 @@ Steel Voyager can run in two modes: "Local" or "Cloud". This behavior is control
 1. Set STEEL_LOCAL="true".
 2. (Optional) Set STEEL_BASE_URL to point to the Steel server if you host it on a custom domain. Otherwise, Steel Voyager will default to http://localhost:3000.
 3. No API key is required in this mode.
-4. Puppeteer will connect via ws://0.0.0.0:3000/?sessionId=…
+4. Puppeteer will connect via ws://0.0.0.0:3000
 
 Example:
 
@@ -218,8 +224,8 @@ export STEEL_BASE_URL="http://localhost:3000" # only if overriding
 Example:
 
 export STEEL_LOCAL="false"
+
 export STEEL_API_KEY="YOUR_STEEL_API_KEY_HERE"
-export STEEL_BASE_URL="https://my-self-hosted-steel.example.com" # optional
 
 ### Claude Desktop Configuration
 
@@ -265,42 +271,30 @@ This will allow Claude Desktop to start Steel Voyager in the correct mode.
    npm start
    ```
 
-### Cloud Deployment
 
-1. Set up your Steel API key
-2. Configure environment variables
-3. Deploy using your preferred hosting solution
-4. Connect Claude Desktop to your deployed instance
+## Example Usage 📹
 
-## Example Usage
+We asked Claude to impress us with it's new abilities and it decided to research the latest developments with sora then create an interactive visualization to demonstrate the data behind the model and how it works 🤯
 
-You can ask Claude to perform various web automation tasks:
-
-- "Navigate to example.com and click the login button"
-- "Fill out the contact form on the page"
-- "Scroll through the product listings and capture screenshots"
-- "Log into my account using the credentials in my password manager"
+video HERE
 
 ## Troubleshooting
 
 Common issues and solutions:
 
-1. **Connection Problems**
+1. Verify your Steel API key when using cloud service and ensure your local Steel instance is running. Check that you have proper network connectivity to the service.
 
-   - Verify Steel API key if using cloud service
-   - Check if local Steel instance is running
-   - Confirm network connectivity
+2. If you're having issues with how pages are being rendered or marked up and sent to claude, try to add a delay in your config via the `GLOBAL_WAIT_SECONDS` env variable.
 
-2. **Element Interaction Issues**
+3. Ensure the page has fully loaded and check your viewport size settings. Make sure your system has sufficient available memory for capturing screenshots.
 
-   - Ensure elements are visible in viewport
-   - Check if labels are correctly assigned
-   - Verify element is interactive
+4. Session clean up isn't the best right now so you may need to manually release sessions as they're spun up to execute tasks.
 
-3. **Screenshot Problems**
-   - Check page load completion
-   - Verify viewport size settings
-   - Ensure sufficient memory available
+5. Prompting claude the right way can go a long way in improving performance and avoiding silly mistakes it may produce.
+
+6. Leverage the session viewer to analyse where
+
+7. After ~15-20 browser actions claude starts to slow down as it's context window gets filled but with images. It shouldn't be horrible but we've noticed some latency here, especially with the Claude Desktop client lagging behind.
 
 ## Contributing
 
