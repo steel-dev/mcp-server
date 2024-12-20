@@ -17,8 +17,8 @@ Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You onl
 ### Prerequisites
 
 1. Latest versions of Git and Node.js installed
-2. [Claude Desktop](https://github.com/<somewhere>) installed
-3. (Optional) [Steel Docker image](https://github.com/example/steel-docker#readme) running locally, if you plan to self-host
+2. [Claude Desktop](https://claude.ai/download) installed
+3. (Optional) [Steel Docker image](https://github.com/steel-dev/steel-browser) running locally, if you plan to self-host
 4. (Optional) If running Steel Cloud, bring your API key. Get one [here](https://app.steel.dev/settings/api-keys).
 
 ---
@@ -28,13 +28,13 @@ Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You onl
 1. Clone and build the project:
 
    ```bash
-   git clone https://github.com/steel-voyager/steel-voyager.git
-   cd steel-voyager
+   git clone https://github.com/steel-dev/steel-mcp-server.git
+   cd steel-mcp-server
    npm install
    npm run build
    ```
 
-2. Configure Claude Desktop (claude_desktop_config.json) by adding a server entry:
+2. Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`) by adding a server entry:
 
    ```json
    {
@@ -68,13 +68,13 @@ Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You onl
 2. Clone and build the project (same as above if not done yet):
 
    ```bash
-   git clone https://github.com/steel-voyager/steel-voyager.git
-   cd steel-voyager
+   git clone https://github.com/steel-dev/steel-mcp-server.git
+   cd steel-mcp-server
    npm install
    npm run build
    ```
 
-3. Configure Claude Desktop (claude_desktop_config.json) for local mode:
+3. Configure Claude Desktop (`~/Library/Application Support/Claude/claude_desktop_config.json`) for local mode:
 
    ```json
    {
@@ -102,6 +102,8 @@ Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You onl
 ---
 
 That’s it! Once Claude Desktop starts, it will orchestrate the MCP server behind the scenes and let you interact with the web automation capabilities through Steel Voyager.
+
+For more info on getting set up or if you're having issues, check out the MCP set-up docs: https://modelcontextprotocol.io/quickstart/user
 
 ## Components
 
@@ -212,6 +214,7 @@ Steel Voyager can run in two modes: "Local" or "Cloud". This behavior is control
 Example:
 
 export STEEL_LOCAL="true"
+
 export STEEL_BASE_URL="http://localhost:3000" # only if overriding
 
 ### Cloud Mode
