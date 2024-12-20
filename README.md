@@ -1,6 +1,7 @@
 # Steel MCP Server
 
-![Steel Voyager Demo](assets/mcp-figma-application-demo.mp4)
+https://github.com/user-attachments/assets/25848033-40ea-4fa4-96f9-83b6153a0212
+
 
 A Model Context Protocol (MCP) server that enables LLMs like Claude to navigate the web through Puppeteer-based tools and Steel. Based on the Web Voyager framework, it provides tools for all the standard web actions click clicking/scrolling/typing/etc and taking screenshots.
 
@@ -279,7 +280,10 @@ This will allow Claude Desktop to start Steel Voyager in the correct mode.
 
 We asked Claude to impress us with it's new abilities and it decided to research the latest developments with sora then create an interactive visualization to demonstrate the data behind the model and how it works 🤯
 
-video HERE
+
+https://github.com/user-attachments/assets/8d4293ea-03fc-459f-ba6b-291f5b017ad7
+
+*Sorry for quality, github forces us to keep the videos under 10mb :/
 
 ## Troubleshooting
 
