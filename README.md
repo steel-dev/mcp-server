@@ -1,74 +1,171 @@
-# Steel Puppeteer
+# Steel Voyager
 
-A Model Context Protocol server that provides browser automation capabilities using Puppeteer and Steel. This server enables LLMs to interact with web pages, take screenshots, and execute JavaScript in a real browser environment.
+![Steel Voyager Demo](assets/mcp-figma-application-demo.mp4)
+"
+A powerful Model Context Protocol (MCP) server that enables LLMs like Claude to automate web browsers through Puppeteer and Steel. It provides capabilities for browser automation, taking screenshots, and executing JavaScript in a real browser environment.
+Ask Claude to help you with tasks like:
+
+- "Navigate to a website and fill out a complex form"
+- "Log into my account and check my order status"
+- "Research products across multiple e-commerce sites"
+- "Automate repetitive web tasks like data entry or form submissions"
+
+## 🚀 Quick Start
+
+Below are the basic steps for getting started with Steel Voyager. This includes how to set up for both cloud and local/self-hosted modes, as well as how to configure Claude Desktop.
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/steel-voyager/steel-voyager.git
+cd steel-voyager
+npm install
+npm run build
+```
+
+### 2. Choose Your Deployment Mode
+
+Steel Voyager supports two main modes: **Cloud** and **Local/Self-Hosted**.
+
+#### A) Cloud Mode
+
+1. Obtain your Steel API key.
+2. Configure the following environment variables:
+   ```
+   STEEL_LOCAL=false
+   STEEL_API_KEY=YOUR_STEEL_API_KEY_HERE
+   STEEL_BASE_URL=https://api.steel.dev  # or your custom endpoint if self-hosted
+   ```
+3. Start the server:
+   ```bash
+   npm start
+   ```
+4. (Optional) If you use Claude Desktop, update your claude_desktop_config.json to point to your built server and make sure to include the environment variables. For example:
+
+   ```json
+   {
+     "mcpServers": {
+       "steel-puppeteer": {
+         "command": "node",
+         "args": ["path/to/steel-voyager/dist/index.js"],
+         "env": {
+           "STEEL_LOCAL": "false",
+           "STEEL_API_KEY": "YOUR_STEEL_API_KEY_HERE",
+           "GLOBAL_WAIT_SECONDS": "1"
+         }
+       }
+     }
+   }
+   ```
+
+5. Launch Claude Desktop, and it will start Steel Voyager in cloud mode using the provided configuration.
+
+#### B) Local / Self-Hosted Mode
+
+1. Make sure you have the open-source Steel Docker image running locally (or on your custom server).  
+   ↪ You can learn more about the open-source [Steel Docker image here](https://github.com/example/steel-docker#readme).
+2. Set the following environment variables:
+   ```
+   STEEL_LOCAL=true
+   STEEL_BASE_URL=http://localhost:3000  # or your custom domain/host if overriding
+   ```
+3. Start the server:
+   ```bash
+   npm start
+   ```
+4. (Optional) Configure Claude Desktop in a similar way as cloud mode, but with the local environment variables:
+
+   ```json
+   {
+     "mcpServers": {
+       "steel-puppeteer": {
+         "command": "node",
+         "args": ["path/to/steel-voyager/dist/index.js"],
+         "env": {
+           "STEEL_LOCAL": "true",
+           "STEEL_BASE_URL": "http://localhost:3000",
+           "GLOBAL_WAIT_SECONDS": "1"
+         }
+       }
+     }
+   }
+   ```
+
+5. Launch Claude Desktop, which will automatically start Steel Voyager and connect to your locally running Steel service.
 
 ## Components
 
 ### Tools
 
-- **puppeteer_navigate**
+- **navigate**
+
   - Navigate to any URL in the browser
   - Inputs:
-    - `url` (string, required): URL to navigate to
-    - `timeout` (number, optional, default: 60000): Navigation timeout in milliseconds
-    - `waitUntil` (string, optional, default: "domcontentloaded"): When to consider navigation succeeded. Options: "load", "domcontentloaded", "networkidle0", "networkidle2"
+    - `url` (string, required): URL to navigate to (e.g. "https://example.com").
 
-- **puppeteer_screenshot**
-  - Capture screenshots of the entire page or specific elements
+- **search**
+
+  - Perform a Google search by navigating to "https://www.google.com/search?q=encodedQuery".
   - Inputs:
-    - `name` (string, required): Name for the screenshot
-    - `selector` (string, optional): CSS selector for element to screenshot
+    - `query` (string, required): Text to search for on Google.
 
-- **puppeteer_click**
-  - Click elements on the page
-  - Input: `selector` (string, required): CSS selector for element to click
+- **click**
 
-- **puppeteer_fill**
-  - Fill out input fields
+  - Click elements on the page using numbered labels
   - Inputs:
-    - `selector` (string, required): CSS selector for input field
-    - `value` (string, required): Value to fill
+    - `label` (number, required): The label number of the element to click.
 
-- **puppeteer_select**
-  - Select an element with SELECT tag
+- **type**
+
+  - Type text into input fields using numbered labels
   - Inputs:
-    - `selector` (string, required): CSS selector for element to select
-    - `value` (string, required): Value to select
+    - `label` (number, required): The label number of the input field.
+    - `text` (string, required): Text to type into the field.
+    - `replaceText` (boolean, optional): If true, replaces any existing text in the field.
 
-- **puppeteer_hover**
-  - Hover elements on the page
-  - Input: `selector` (string, required): CSS selector for element to hover
+- **scroll_down**
 
-- **puppeteer_evaluate**
-  - Execute JavaScript in the browser console
-  - Input: `script` (string, required): JavaScript code to execute
-
-- **puppeteer_get_content**
-  - Extract content from the current page
-  - Input: `selector` (string, optional): CSS selector to get content from specific elements. If not provided, returns whole page content
-
-- **puppeteer_scroll**
-  - Scroll the page to trigger lazy-loading
+  - Scroll down the page
   - Inputs:
-    - `scrollDelay` (number, optional, default: 100): Delay between scrolls in milliseconds
-    - `maxScrolls` (number, optional, default: 50): Maximum number of scrolls
+    - `pixels` (integer, optional): Number of pixels to scroll down. If not specified, scrolls by one full page.
+
+- **scroll_up**
+
+  - Scroll up the page
+  - Inputs:
+    - `pixels` (integer, optional): Number of pixels to scroll up. If not specified, scrolls by one full page.
+
+- **go_back**
+
+  - Navigate to the previous page in browser history
+  - No inputs required
+
+- **wait**
+
+  - Wait for up to 10 seconds, useful for pages that load slowly or need more time for dynamic content to appear.
+  - Inputs:
+    - `seconds` (number, required): Number of seconds to wait (0 to 10).
+
+- **save_unmarked_screenshot**
+  - Capture the current page without bounding boxes or highlights and store it as a resource.
+  - Inputs:
+    - `resourceName` (string, optional): Name to store the screenshot under (e.g. "before_login"). If omitted, a generic name is generated automatically.
 
 ### Resources
 
-The server provides access to two types of resources:
+- **Screenshots**:
+  Each saved screenshot is accessible via an MCP resource URI in the form of:
+  • `screenshot://RESOURCE_NAME`
 
-1. **Console Logs** (`console://logs`)
-   - Browser console output in text format
-   - Includes all console messages from the browser
+  The server stores these screenshots whenever you specify the "save_unmarked_screenshot" tool or when an action concludes (for most tools) with an annotated screenshot. These images can be retrieved through a standard MCP resource retrieval request.
 
-2. **Screenshots** (`screenshot://<name>`)
-   - PNG images of captured screenshots
-   - Accessible via the screenshot name specified during capture
+(Note: While console logs are still collected for analysis and debugging, they are not exposed as retrievable resources in this implementation. They appear in the server’s logs but are not served via MCP resource URIs.)
 
 ## Key Features
 
 - Browser automation with Puppeteer
 - Steel integration for browser session management
+- Visual element identification through numbered labels
 - Console log monitoring and capture
 - Screenshot capabilities
 - JavaScript execution
@@ -77,11 +174,57 @@ The server provides access to two types of resources:
 - Lazy-loading support through scrolling
 - Local and remote Steel instance support
 
+## Understanding Bounding Boxes
+
+When interacting with pages, Steel Puppeteer adds visual overlays to help identify interactive elements:
+
+- Each interactive element (buttons, links, inputs) gets a unique numbered label
+- Colored boxes outline the elements' boundaries
+- Labels appear above or inside elements for easy reference
+- Use these numbers when specifying elements for click or type operations
+
+Below is a revised “Configuration” section for your README, aiming for greater clarity and simplicity.
+
 ## Configuration
+
+Steel Voyager can run in two modes: "Local" or "Cloud". This behavior is controlled by environment variables. Below is a concise overview:
+
+| Environment Variable | Default                 | Description                                                                                                                                                                                                                    |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| STEEL_LOCAL          | "false"                 | Determines if Steel Voyager runs in local (true) or cloud (false) mode.                                                                                                                                                        |
+| STEEL_API_KEY        | (none)                  | Required only when STEEL_LOCAL = "false". Used to authenticate requests with the Steel endpoint.                                                                                                                               |
+| STEEL_BASE_URL       | "https://api.steel.dev" | The base URL for the Steel API. Override this if self-hosting the Steel server (either locally or in your own cloud environment). If STEEL_LOCAL = "true" and STEEL_BASE_URL is unset, it defaults to "http://localhost:3000". |
+| GLOBAL_WAIT_SECONDS  | (none)                  | Optional. Number of seconds to wait after each tool action (for instance, to allow slow-loading pages).                                                                                                                        |
+
+### Local Mode
+
+1. Set STEEL_LOCAL="true".
+2. (Optional) Set STEEL_BASE_URL to point to the Steel server if you host it on a custom domain. Otherwise, Steel Voyager will default to http://localhost:3000.
+3. No API key is required in this mode.
+4. Puppeteer will connect via ws://0.0.0.0:3000/?sessionId=…
+
+Example:
+
+export STEEL_LOCAL="true"
+export STEEL_BASE_URL="http://localhost:3000" # only if overriding
+
+### Cloud Mode
+
+1. Set STEEL_LOCAL="false".
+2. Set STEEL_API_KEY so Steel Voyager can authenticate with the Steel cloud service (or your self-hosted Steel if you changed STEEL_BASE_URL).
+3. STEEL_BASE_URL defaults to https://api.steel.dev; override this if you have a self-hosted Steel instance running on another endpoint.
+4. Puppeteer will connect via wss://connect.steel.dev?sessionId=…&apiKey=…
+
+Example:
+
+export STEEL_LOCAL="false"
+export STEEL_API_KEY="YOUR_STEEL_API_KEY_HERE"
+export STEEL_BASE_URL="https://my-self-hosted-steel.example.com" # optional
 
 ### Claude Desktop Configuration
 
-To use the Steel Puppeteer server with Claude Desktop, add the following configuration to your Claude Desktop config file (typically located at `~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+To use Steel Voyager with Claude Desktop, add something like this to your config file (often located at
+~/Library/Application Support/Claude/claude_desktop_config.json):
 
 ```json
 {
@@ -90,64 +233,89 @@ To use the Steel Puppeteer server with Claude Desktop, add the following configu
       "command": "node",
       "args": ["path/to/steel-puppeteer/dist/index.js"],
       "env": {
-        "STEEL_LOCAL": "true"
+        "STEEL_LOCAL": "false",
+        "STEEL_API_KEY": "your_api_key_here"
       }
     }
   }
 }
 ```
 
-Replace `"path/to/steel-puppeteer/dist/index.js"` with the actual path to the compiled JavaScript file on your system.
+Adjust the environment variables to match your desired mode:
 
-### Environment Variables
+• If running locally/self hosted, keep `"STEEL_LOCAL": "true"` and optionally `"STEEL_BASE_URL": "http://localhost:3000"`.  
+• If running in cloud mode, remove `"STEEL_LOCAL": "true"`, add `"STEEL_LOCAL": "false"`, and supply `"STEEL_API_KEY": "<YourKey>"`
+This will allow Claude Desktop to start Steel Voyager in the correct mode.
 
-The Steel Puppeteer server can be configured using the following environment variables:
+## Installation & Running
 
-- `STEEL_LOCAL` (optional, default: "false"): Set to "true" to use a local Steel instance instead of the cloud service.
-- `STEEL_API_KEY` (required only if `STEEL_LOCAL` is "false"): Your Steel API key for authentication when using the cloud service.
-- `STEEL_URL` (optional): The URL of your Steel instance if using a custom deployment.
+### Local Development
 
-
-### Server Configuration
-If you're running the Steel Puppeteer server directly (not through Claude Desktop), you can set these environment variables in your shell or create a `.env` file in the project root. Here's an example `.env` file for local usage:
-
-```
-STEEL_LOCAL=true
-```
-
-If you're using the Steel cloud service, your `.env` file would look like this:
-
-```
-STEEL_API_KEY=your-steel-api-key
-STEEL_LOCAL=false
-```
-
-### Running the Server
-
-To start the Steel Puppeteer server:
-
-1. Install dependencies:
-   ```
+1. Clone the repository
+2. Install dependencies:
+   ```bash
    npm install
    ```
-
-2. Build the project:
-   ```
+3. Build the project:
+   ```bash
    npm run build
    ```
-
-3. Start the server:
-   ```
+4. Start the server:
+   ```bash
    npm start
    ```
 
-4. Open Claude Desktop and browse away!
-The server will start and listen on the specified port (default: 3000).
+### Cloud Deployment
 
-### Troubleshooting
+1. Set up your Steel API key
+2. Configure environment variables
+3. Deploy using your preferred hosting solution
+4. Connect Claude Desktop to your deployed instance
 
-- If you encounter issues with Puppeteer, ensure that you have the necessary dependencies installed on your system. Refer to the [Puppeteer troubleshooting guide](https://pptr.dev/#?product=Puppeteer&version=v13.5.0&show=api-troubleshooting) for more information.
-- If using the Steel cloud service, make sure your Steel API key is valid and has the necessary permissions.
-- If using a local Steel instance, ensure it's running and accessible at the specified URL (if custom) or at the default local address.
+## Example Usage
 
-For more detailed configuration options and advanced usage, refer to the Steel documentation and the Puppeteer API reference.
+You can ask Claude to perform various web automation tasks:
+
+- "Navigate to example.com and click the login button"
+- "Fill out the contact form on the page"
+- "Scroll through the product listings and capture screenshots"
+- "Log into my account using the credentials in my password manager"
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **Connection Problems**
+
+   - Verify Steel API key if using cloud service
+   - Check if local Steel instance is running
+   - Confirm network connectivity
+
+2. **Element Interaction Issues**
+
+   - Ensure elements are visible in viewport
+   - Check if labels are correctly assigned
+   - Verify element is interactive
+
+3. **Screenshot Problems**
+   - Check page load completion
+   - Verify viewport size settings
+   - Ensure sufficient memory available
+
+## Contributing
+
+This project is experimental and under active development. Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch
+3. Submit a pull request
+
+Please include:
+
+- Clear description of changes
+- Motivation
+- Documentation updates
+
+## Disclaimer
+
+⚠️ This project is experimental and based on the Web Voyager codebase. Use in production environments at your own risk.
