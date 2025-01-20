@@ -11,6 +11,8 @@ Ask Claude to help you with tasks like:
 - "Find and compare prices for a specific product"
 - "Fill out an online job application"
 
+<a href="https://glama.ai/mcp/servers/tbd32geble"><img width="380" height="200" src="https://glama.ai/mcp/servers/tbd32geble/badge" alt="Steel Server MCP server" /></a>
+
 ## 🚀 Quick Start
 
 Below is a streamlined guide to run Steel Voyager inside Claude Desktop. You only need to adjust the environment options to switch between Steel Cloud and a local/self-hosted instance.
