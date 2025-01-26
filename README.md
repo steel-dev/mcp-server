@@ -1,5 +1,7 @@
 # Steel MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@steel-dev/steel-mcp-server)](https://smithery.ai/server/@steel-dev/steel-mcp-server)
+
 https://github.com/user-attachments/assets/25848033-40ea-4fa4-96f9-83b6153a0212
 
 
@@ -260,6 +262,14 @@ Adjust the environment variables to match your desired mode:
 This will allow Claude Desktop to start Steel Voyager in the correct mode.
 
 ## Installation & Running
+
+### Installing via Smithery
+
+To install Steel MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@steel-dev/steel-mcp-server):
+
+```bash
+npx -y @smithery/cli install @steel-dev/steel-mcp-server --client claude
+```
 
 ### Local Development
 
