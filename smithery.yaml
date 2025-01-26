@@ -1,0 +1,27 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - steelLocal
+    properties:
+      steelLocal:
+        type: boolean
+        description: Set to true for local mode and false for cloud mode.
+      steelApiKey:
+        type: string
+        description: API key for Steel cloud service. Required if steelLocal is false.
+      steelBaseUrl:
+        type: string
+        description: Base URL for Steel API. Optional, defaults to http://localhost:3000
+          for local mode and https://api.steel.dev for cloud mode.
+      globalWaitSeconds:
+        type: number
+        description: Optional number of seconds to wait after each tool action.
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({command:'node',args:['dist/index.js'],env:{STEEL_LOCAL:config.steelLocal.toString(),STEEL_API_KEY:config.steelApiKey,STEEL_BASE_URL:config.steelBaseUrl,GLOBAL_WAIT_SECONDS:config.globalWaitSeconds?.toString()}})
