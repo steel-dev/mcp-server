@@ -311,7 +311,21 @@ class SteelSessionManager {
     // Connect Puppeteer to the appropriate WebSocket
     if (this.steelLocal) {
       // Local WebSocket endpoint
-      const browserWSEndpoint = `ws://0.0.0.0:3000/?sessionId=${this.sessionId}`;
+      const lowercaseBaseURL = steelBaseURL.toLowerCase();
+      let browserWSEndpoint;
+      if (lowercaseBaseURL.startsWith("http://")) {
+        browserWSEndpoint = `${steelBaseURL.replace("http://", "ws://")}/?sessionId=${this.sessionId}`;
+      }
+      else if (lowercaseBaseURL.startsWith("https://")) {
+        browserWSEndpoint = `${steelBaseURL.replace("https://", "wss://")}/?sessionId=${this.sessionId}`;
+      }
+      else {
+        throw new Error("Invalid Steel base URL");
+      }
+      console.error(JSON.stringify({
+        message: "Connecting to Steel session",
+        browserWSEndpoint,
+      }));
       this.browser = await puppeteer.connect({ browserWSEndpoint });
     } else {
       // Cloud WebSocket endpoint
